@@ -7,11 +7,25 @@ const {
 }  = require('../controller/blog.js');
 const { SuccessModel, ErrorModel } = require('../model/resModel');
 
+//登录验证
+const loginCheck = (req) => {
+  if(!req.session.username) {
+    return Promise.resolve(
+      new ErrorModel("暂未登录")
+    );
+  }
+}
 const handleBlogRouter = (req, res) => {
-
   if(req.method === "GET" && req.path ==="/api/blog/list") {
-    const author = req.query.author || '';
+    let author = req.query.author || '';
     const keyword = req.query.keyword || '';
+    if(req.query.isadmin) {
+      const loginCheckResult = loginCheck(req);
+      if(loginCheckResult) {
+        return loginCheckResult;
+      }
+      author = req.session.username;
+    }
     return getList(author, keyword).then(listData => {
       return new SuccessModel(listData);
     });
@@ -26,7 +40,11 @@ const handleBlogRouter = (req, res) => {
   }
 
   if(req.method === "POST" && req.path ==="/api/blog/add") {
-    req.body.author = 'Torisg';
+    const isLogin = loginCheck(req);
+    if(isLogin) { //未登录
+      return isLogin;
+    }
+    req.body.author = req.session.username;
     const postData = req.body;
     const addResult = addBlog(postData);
     return addResult.then(val => {
@@ -39,9 +57,13 @@ const handleBlogRouter = (req, res) => {
   }
 
   if(req.method === "POST" && req.path ==="/api/blog/update") {
-    req.body.author = 'Torisg';
+    const isLogin = loginCheck(req);
+    if(isLogin) { //未登录
+      return isLogin;
+    }
+    req.body.author = req.session.username;
     const postData = req.body;
-    const id = postData.id || '';
+    const id = req.query.id || '';
     const resultUpdate = updateBlog(id, postData);
     return resultUpdate.then(val => {
       if(val) {
@@ -53,9 +75,14 @@ const handleBlogRouter = (req, res) => {
     
   }
   if(req.method === "POST" && req.path ==="/api/blog/del") {
+    const isLogin = loginCheck(req);
+    console.log(isLogin)
+    if(isLogin) { //未登录
+      return isLogin;
+    }
     const postData = req.body;
-    const id = postData.id || '';
-    const delData = delBlog(id, 'Torisg');
+    const id = req.query.id || '';
+    const delData = delBlog(id, req.session.username);
     return delData.then(val => {
       if(val) {
         return new SuccessModel(val);

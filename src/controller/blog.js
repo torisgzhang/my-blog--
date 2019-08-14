@@ -23,7 +23,7 @@ const getDetail = (id) => {
 const addBlog = (postData = {}) => {
   let sql = `
     INSERT INTO tg_blogs (articleid, title, content, createtime, author) 
-    VALUES('${uuid()}', '${postData.title}', '${postData.title}', ${Date.now()}, '${postData.author}')
+    VALUES('${uuid()}', '${postData.title}', '${postData.content}', ${Date.now()}, '${postData.author}')
   `;
   return exec(sql).then(addData => {
     if(addData.affectedRows > 0) {
