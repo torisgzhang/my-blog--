@@ -12,32 +12,57 @@ const handleBlogRouter = (req, res) => {
   if(req.method === "GET" && req.path ==="/api/blog/list") {
     const author = req.query.author || '';
     const keyword = req.query.keyword || '';
-    const listData = getList(author, keyword);
-    return new SuccessModel(listData);
+    return getList(author, keyword).then(listData => {
+      return new SuccessModel(listData);
+    });
   }
 
   if(req.method === "GET" && req.path ==="/api/blog/detail") {
     const id = req.query.id || '';
-    const detailData = getDetail(id);
-    return new SuccessModel(detailData);
+    const detailResult = getDetail(id);
+    return detailResult.then(detailData => {
+      return new SuccessModel(detailData);
+    });
   }
 
   if(req.method === "POST" && req.path ==="/api/blog/add") {
+    req.body.author = 'Torisg';
     const postData = req.body;
-    const data = addBlog(postData);
-    return new SuccessModel(data);
+    const addResult = addBlog(postData);
+    return addResult.then(val => {
+      if(val) {
+        return new SuccessModel(val);
+      } else {
+        return new ErrorModel('新建文章失败');
+      }
+    });
   }
+
   if(req.method === "POST" && req.path ==="/api/blog/update") {
+    req.body.author = 'Torisg';
     const postData = req.body;
     const id = postData.id || '';
-    const data = updateBlog(id, postData);
-    return new SuccessModel(data);
+    const resultUpdate = updateBlog(id, postData);
+    return resultUpdate.then(val => {
+      if(val) {
+        return new SuccessModel(val);
+      } else {
+        return new ErrorModel('更新文章失败');
+      }
+    });
+    
   }
   if(req.method === "POST" && req.path ==="/api/blog/del") {
     const postData = req.body;
     const id = postData.id || '';
-    const data = delBlog(id);
-    return new SuccessModel(data);
+    const delData = delBlog(id, 'Torisg');
+    return delData.then(val => {
+      if(val) {
+        return new SuccessModel(val);
+      } else {
+        return new ErrorModel('删除文章失败');
+      }
+    });
   }
  
 }
