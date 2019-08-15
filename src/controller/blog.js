@@ -1,5 +1,6 @@
 const uuid = require('uuid/v1');
-const { exec } = require('../db/mysql');
+const xss = require('xss');
+const { exec, escape } = require('../db/mysql');
 
 const getList = (author, keyword) => {
   let sql = `SELECT * from tg_blogs WHERE 1=1 `;
@@ -21,9 +22,11 @@ const getDetail = (id) => {
 }
 
 const addBlog = (postData = {}) => {
+  const title = xss(postData.title);
+  const content = xss(postData.content);
   let sql = `
     INSERT INTO tg_blogs (articleid, title, content, createtime, author) 
-    VALUES('${uuid()}', '${postData.title}', '${postData.content}', ${Date.now()}, '${postData.author}')
+    VALUES('${uuid()}', ${escape(title)}, ${escape(content)}, ${Date.now()}, '${postData.author}')
   `;
   return exec(sql).then(addData => {
     if(addData.affectedRows > 0) {
@@ -36,7 +39,7 @@ const addBlog = (postData = {}) => {
 
 const updateBlog = (id, postData = {}) => {
   let sql = `
-    UPDATE tg_blogs SET title='${postData.title}', content='${postData.content}' WHERE articleid='${id}'
+    UPDATE tg_blogs SET title=${escape(postData.title)}, content=${escape(postData.content)} WHERE articleid='${id}'
   `;
   return exec(sql).then(updateData => {
     if(updateData.affectedRows > 0) {
